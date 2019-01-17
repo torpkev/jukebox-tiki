@@ -1,17 +1,24 @@
 package work.torp.jukeboxtiki;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
+
+import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
-import work.torp.jukeboxtiki.classes.Jukebox;
+import work.torp.jukeboxtiki.classes.TikiJukebox;
+import work.torp.jukeboxtiki.commands.JukeboxCommand;
+import work.torp.jukeboxtiki.scheduled.PlaySong;
 
 public class Main  extends JavaPlugin {
 	
 	// Hashmaps
 	public static HashMap<UUID, UUID> CommandUUID = new HashMap<UUID, UUID>();
+	public static HashMap<Block, TikiJukebox> Jukeboxes = new HashMap<Block, TikiJukebox>();
 	
 	// Main
 	private static Main instance;
@@ -28,26 +35,45 @@ public class Main  extends JavaPlugin {
     	this.debugfile = debugfile;
     }
 
-    // Lists
-    @SuppressWarnings("unused")
-	private List<Jukebox> jukeboxes;
-    
     // Configuration
+    private int distance = 64;
+    public int getDistance() 
+    {
+    	return this.distance;
+    }
+    private boolean internal_storage = true;
+    public boolean getInternalStorage()
+    {
+    	return this.internal_storage;
+    }
     public void loadConfig() {
     	try {	
-//    		String s_console_only = Main.getInstance().getConfig().getString("console_only");
-//    		console_only = false; // default to false
-//	    	if (s_console_only != null) {
-//	    		if (s_console_only.equalsIgnoreCase("true")) {
-//	    			console_only = true;
-//				} else if (s_console_only.equalsIgnoreCase("true")) {
-//					console_only = false;
-//				} else {
-//					Alert.Log("Main.loadConfig", "console_only value is invalid, using default of false");
-//				}
-//	    	} else {
-//	    		Alert.Log("Main.loadConfig", "console_only value not found, using default of false");
-//	    	}	
+    		if (Main.getInstance().getConfig().getString("distance") != null)
+    		{
+    			String s_distance = Main.getInstance().getConfig().getString("distance");
+    			int i_distance = distance;
+    			try{
+    				i_distance = Integer.parseInt(s_distance);
+    				distance = i_distance;
+    			} 
+    			catch (NumberFormatException ex) {
+    				Alert.DebugLog("Main", "loadConfig", "Config - distance invalid, must be a number. Using default");	
+    			}
+    		}  
+    		
+    		String s_internal_storage = Main.getInstance().getConfig().getString("internal_storage");
+    		internal_storage = false; // default to false
+	    	if (s_internal_storage != null) {
+	    		if (s_internal_storage.equalsIgnoreCase("true")) {
+	    			internal_storage = true;
+				} else if (s_internal_storage.equalsIgnoreCase("true")) {
+					internal_storage = false;
+				} else {
+					Alert.Log("Main.loadConfig", "internal_storage value is invalid, using default of true");
+				}
+	    	} else {
+	    		Alert.Log("Main.loadConfig", "internal_storage value not found, using default of true");
+	    	}	
     	}
     	catch (Exception ex) {
     		Alert.Log("Load Configuration", "Unexpected Error - " + ex.getMessage());  	
@@ -65,11 +91,25 @@ public class Main  extends JavaPlugin {
     
     // Commands
     public void loadCommands() {
-    	Alert.DebugLog("Main", "loadCommands", "Activating /givespawner");
+    	Alert.DebugLog("Main", "loadCommands", "Activating /jukebox");
 		try {
-		    	//getCommand("givespawner").setExecutor(new GiveSpawner());
+			getCommand("jukebox").setExecutor(new JukeboxCommand());
 		} catch (Exception ex) {
 			Alert.Log("Load Commands", "Unexpected Error - " + ex.getMessage());  
+		}
+    }
+    
+    // Scheduled
+    public void startPlaySong() {
+    	try {
+	        BukkitTask task = new BukkitRunnable() {       	
+	            public void run() {
+	            	PlaySong.Run();
+	            }
+	        }.runTaskTimer(getInstance(), 40, 40);
+	        Alert.DebugLog("Main", "startPlaySong", "startPlaySong running with id " + task.getTaskId());
+    	} catch (Exception ex) {
+			Alert.DebugLog("Main", "startPlaySong", "Unexpected Error - " + ex.getMessage());  
 		}
     }
     
@@ -87,7 +127,8 @@ public class Main  extends JavaPlugin {
 	        loadEventListeners();
 	        loadCommands();
 
-
+	        startPlaySong();
+	        
     	} catch (Exception ex) {
 			Alert.DebugLog("Main", "onEnable", "Unexpected Error - " + ex.getMessage());  
 		}

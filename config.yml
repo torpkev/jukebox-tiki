@@ -1,0 +1,4 @@
+internal_storage: true
+distance: 64
+verbose_logging: true
+debug_logging: true

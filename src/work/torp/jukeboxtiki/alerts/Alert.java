@@ -15,12 +15,14 @@ import org.bukkit.entity.Player;
 import work.torp.jukeboxtiki.Main;
 
 public class Alert {
+	private static String name = "Jukebox";
+	
 	public static void Sender(String message, CommandSender sender, boolean includeHeader) {
 		String header = "";
 		if (includeHeader)
 		{
-			header = ChatColor.BLUE + "[Spawner] ";
-		}
+			header = ChatColor.BLUE + "[" + name + "] ";
+		} 
 		if (sender != null)
 		{
 			if (message != null) {
@@ -32,7 +34,7 @@ public class Alert {
 		String header = "";
 		if (includeHeader)
 		{
-			header = ChatColor.BLUE + "[Spawner] ";
+			header = ChatColor.BLUE + "[" + name + "] ";
 		}
 		if (player != null)
 		{
@@ -47,7 +49,7 @@ public class Alert {
 	public static void Log(String function, String message)
 	{
 		ConsoleCommandSender clogger = Main.getInstance().getServer().getConsoleSender();
-		clogger.sendMessage(ChatColor.DARK_PURPLE + "[Spawner]" + ChatColor.GOLD + "[" + function + "] " + ChatColor.WHITE + message);
+		clogger.sendMessage(ChatColor.DARK_PURPLE + "[" + name + "]" + ChatColor.GOLD + "[" + function + "] " + ChatColor.WHITE + message);
 	}
 	public static void VerboseLog(String function, String message)
 	{
@@ -56,7 +58,7 @@ public class Alert {
 		{
 			if (vlog.toLowerCase() == "true") {
 				ConsoleCommandSender clogger = Main.getInstance().getServer().getConsoleSender();
-				clogger.sendMessage(ChatColor.DARK_RED + "[Spawner.Verbose]" + ChatColor.GOLD + "[" + function + "] " + ChatColor.WHITE + message);
+				clogger.sendMessage(ChatColor.DARK_RED + "[" + name + ".Verbose]" + ChatColor.GOLD + "[" + function + "] " + ChatColor.WHITE + message);
 			}	
 		}
 	}
@@ -70,7 +72,7 @@ public class Alert {
 		{
 			if (elog.toLowerCase() == "true") {
 				ConsoleCommandSender clogger = Main.getInstance().getServer().getConsoleSender();
-				clogger.sendMessage(ChatColor.LIGHT_PURPLE + "[Spawner.Debug]" + ChatColor.AQUA + "[" + function + "." + subfunction + "] " + ChatColor.WHITE + message);
+				clogger.sendMessage(ChatColor.LIGHT_PURPLE + "[" + name + ".Debug]" + ChatColor.AQUA + "[" + function + "." + subfunction + "] " + ChatColor.WHITE + message);
 				if (Main.getInstance().getDebugFile()) {
 					Alert.LogToFile("[" + function + "." + subfunction + "] " + message);
 				}
@@ -88,7 +90,7 @@ public class Alert {
             }
  
             String fileDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
-            File saveTo = new File(Main.getInstance().getDataFolder(), fileDate + "_donor_debug.log");
+            File saveTo = new File(Main.getInstance().getDataFolder(), fileDate + "_" + name + "_debug.log");
             if (!saveTo.exists())
             {
                 saveTo.createNewFile();

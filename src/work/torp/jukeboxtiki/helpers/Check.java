@@ -70,4 +70,33 @@ public class Check {
 		}
 		return retVal;
 	}
+	public static boolean isDiscContainer(Material m)
+	{
+		boolean retVal = false;
+		if (m != null)
+		{
+			switch (m)
+			{
+			case CHEST:
+				retVal = true;
+				break;
+			case TRAPPED_CHEST:
+				retVal = true;
+				break;	
+			case HOPPER:
+				retVal = true;
+				break;
+			default:
+				break;
+			}
+			if (retVal)
+			{
+				Alert.DebugLog("Check", "isDiscContainer", "Material is a valid disc container - Material: " + m.name());
+			} else {
+				Alert.DebugLog("Check", "isDiscContainer", "Material not a valid disc container - Material: " + m.name());
+			}
+		}
+		return retVal;
+	}
+
 }

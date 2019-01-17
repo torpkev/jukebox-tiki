@@ -1,11 +1,11 @@
-package work.torp.givespawner.helpers;
+package work.torp.jukeboxtiki.helpers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
-import work.torp.givespawner.alerts.Alert;
+import work.torp.jukeboxtiki.alerts.Alert;
 
 public class Convert {
 	public static Material StringToMaterial(String material_name)
