@@ -1,7 +1,11 @@
 package work.torp.jukeboxtiki.classes;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -11,11 +15,14 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Jukebox;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import net.md_5.bungee.api.ChatColor;
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.helpers.Check;
 import work.torp.jukeboxtiki.helpers.Convert;
+import work.torp.jukeboxtiki.helpers.Provide;
 
 
 public class TikiJukebox {
@@ -24,9 +31,10 @@ public class TikiJukebox {
 	private int jukeboxID;
 	private UUID owner;
 	private Location location;
-	private List<Disc> discs;
+	private Set<Disc> discs;
 	private boolean isPlaying;
 	private boolean isActive;
+	private Timestamp songEnds;
 	
 	// Getters and Setters
 	public int getJukeboxID()
@@ -53,11 +61,11 @@ public class TikiJukebox {
 	{
 		this.location = location;
 	}
-	public List<Disc> getDiscs()
+	public Set<Disc> getDiscs()
 	{
 		return this.discs;
 	}
-	public void setDiscs(List<Disc> discs)
+	public void setDiscs(Set<Disc> discs)
 	{
 		this.discs = discs;
 	}
@@ -77,6 +85,19 @@ public class TikiJukebox {
 	{
 		this.isActive = isActive;
 	}
+	public Timestamp getSongEnds()
+	{
+		return this.songEnds;
+	}
+	public void setSongEnds(Material disc)
+	{
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(new Timestamp(System.currentTimeMillis()).getTime());
+		cal.add(Calendar.SECOND,Provide.getRecordLengthFromDisc(disc));
+		Timestamp ts_new_date_ws = new Timestamp(cal.getTime().getTime());
+		this.songEnds = ts_new_date_ws; 		
+	}
+	
 	
 	// Private Functions
 	private Jukebox getJukebox()
@@ -106,9 +127,25 @@ public class TikiJukebox {
 		this.jukeboxID = -1;
 		this.owner = UUID.randomUUID();
 		this.location = new Location(Bukkit.getWorld("world"), 0, 0, 0);
-		this.discs = new ArrayList<Disc>();
-		this.isPlaying = false;
+		this.discs = new HashSet<Disc>();
+		this.isPlaying = true;
 		this.isActive = true;
+		this.setSongEnds(Material.AIR);
+		if (Main.getInstance().getInternalStorage())
+		{
+			List<String> lstStocked = Main.getInstance().getConfig().getStringList("internal_prestocked");
+			if (lstStocked != null)
+			{
+				for (String discname : lstStocked)
+				{
+					Disc d = Provide.getDiscByName(discname);
+					if (d.getDisc() != Material.AIR)
+					{
+						this.addDisc(d);
+					}
+				}
+			}
+		}
 	}
 	public void save()
 	{
@@ -119,13 +156,13 @@ public class TikiJukebox {
 		boolean retVal = false;
     	try {
 	    	if (this.discs == null) {
-	    		this.discs = new ArrayList<Disc>();
+	    		this.discs = new HashSet<Disc>();
 	    	}
 	    	if (disc != null)
 	    	{
 	    		if (Check.isMusicDisc(disc.getDisc()))
 	    		{
-	    			Alert.DebugLog("Jukebox", "addDisc", "Adding " + disc.getDisc().name() + " to Jukebox ID: " + Integer.toString(this.jukeboxID));
+	    			//Alert.DebugLog("Jukebox", "addDisc", "Adding " + disc.getDisc().name() + " to Jukebox ID: " + Integer.toString(this.jukeboxID));
 	    			this.discs.add(disc);
 	    			retVal = true;
 	    		}
@@ -151,7 +188,7 @@ public class TikiJukebox {
     		{
     			if (Check.isMusicDisc(disc.getDisc()))
     			{
-    				List<Disc> lstJB = new ArrayList<Disc>();
+    				Set<Disc> lstJB = new HashSet<Disc>();
             		if (this.discs != null) {
             			for (Disc m : this.discs)
         	    		{
@@ -159,7 +196,7 @@ public class TikiJukebox {
         					{
             					lstJB.add(m);
         					} else {
-        						Alert.DebugLog("Jukebox", "removeDisc", "Removing " + disc.getDisc().name() + " from Jukebox ID: " + Integer.toString(this.jukeboxID));
+        						//Alert.DebugLog("Jukebox", "removeDisc", "Removing " + disc.getDisc().name() + " from Jukebox ID: " + Integer.toString(this.jukeboxID));
         					}
         	    		}
             		}
@@ -191,7 +228,7 @@ public class TikiJukebox {
 				{
 					int dist = (int) Math.round(this.location.distance(player.getLocation()));
 					Alert.DebugLog("Jukebox", "nearbyPlayers", "Player UUID: " + player.getUniqueId().toString() + " - Location: " + Convert.LocationToReadableString(player.getLocation()) + " - Distance from Jukebox: " + Integer.toString(dist) + " - Max distance = " + Integer.toString(Main.getInstance().getDistance()));
-					if (dist >= Main.getInstance().getDistance())
+					if (dist <= Main.getInstance().getDistance())
 					{
 						Alert.DebugLog("Jukebox", "nearbyPlayers", "Adding Player UUID: " + player.getUniqueId().toString());
 						lstUUID.add(player.getUniqueId());
@@ -210,6 +247,11 @@ public class TikiJukebox {
 			retVal = jb.isPlaying();
 		}
 		return retVal;
+	}
+	public Block getBlock()
+	{
+		Jukebox jb = getJukebox();
+		return jb.getBlock();
 	}
 	public boolean isDiscLoaded() {
 		boolean retVal = false;
@@ -242,45 +284,115 @@ public class TikiJukebox {
 		return retVal;
 	}
 	public boolean ejectDiscToStorage() {
+		Alert.Log("TikiJukebox", ChatColor.YELLOW + "EJECTING!");
 		boolean retVal = false;
 		if (isDiscLoaded())
 		{
+			stop();
+			Alert.Log("TikiJukebox", ChatColor.YELLOW + "Disc is loaded");
 			Jukebox jb = getJukebox();
+			Alert.Log("TikiJukebox", ChatColor.YELLOW + "Got jukebox");
 			Material disc = jb.getRecord().getType();
 			Disc d = new Disc();
+			d.init();
 			d.setDisc(disc);
+			Alert.Log("TikiJukebox", ChatColor.YELLOW + "Setting disc orderby as " + Integer.toString(this.getDiscs().size() + 1));
 			d.setOrderBy(this.getDiscs().size() + 1);
+			Alert.Log("TikiJukebox", ChatColor.YELLOW + "Adding disc to storage");
 			this.addDisc(d); // add the disc to storage
+
+			jb.getLocation().getBlock().setType(Material.JUKEBOX);
+			
+			jb.setPlaying(null);
+			Main.Jukeboxes.put(jb.getBlock(), this);
+			
+			
 		}
 		return retVal;
 	}
-	public boolean loadFirstDiscToStorage() {
-		boolean retVal = false;
-		if (isDiscLoaded())
-		{
-			this.ejectDiscToStorage(); // eject disc
-		}
-		if (!this.discs.isEmpty() && this.discs.size() > 0) {
-	        Disc disc = discs.get(0); // get first disc from storage
-			Jukebox jb = getJukebox();
-			this.removeDisc(disc); // remove disc from storage
-			jb.setPlaying(disc.getDisc());
-	    }
-		return retVal;
+	public void stop()
+	{
+		Jukebox jb = getJukebox();
+		Material disc = jb.getRecord().getType();
+		Disc d = new Disc();
+		d.init();
+		d.setDisc(disc);
+		d.setOrderBy(this.getDiscs().size() + 1);
+		this.addDisc(d); // add the disc to storage	
+		jb.eject();
+		this.isPlaying = false;
 	}
-	public void shuffleDiscs() {
-		List<Disc> lstD = this.discs;
-		if (lstD != null)
+	public void play()
+	{
+		Alert.DebugLog("TikiJukebox", "play", "play() called");
+		Jukebox jb = getJukebox();
+		boolean playing = false;
+		if (this.discs != null)
 		{
-			lstD.sort((Disc z1, Disc z2) -> {
-			   if (z1.getShuffleUUID().toString().hashCode() > z2.getShuffleUUID().toString().hashCode())
-				     return 1;
-				   if (z1.getShuffleUUID().toString().hashCode() < z2.getShuffleUUID().toString().hashCode())
-				     return -1;
-				   return 0;
-				});
-			this.discs = lstD;
+			if (!this.discs.isEmpty())
+			{
+				for (Disc d : this.discs)
+				{
+					Alert.DebugLog("TikiJukebox", "play", ChatColor.GOLD + "Disc in storage: " + d.getDisc().name());
+				}
+				if (isDiscLoaded())
+				{
+					Alert.DebugLog("TikiJukebox", "play", "Disc is loaded: " + jb.getRecord().getType());
+					this.ejectDiscToStorage(); // eject disc	
+				}
+				if (!this.discs.isEmpty() && this.discs.size() > 0) {
+					for (Disc d : discs)
+					{
+						if (!playing)
+						{
+							if (Check.isMusicDisc(d.getDisc()))
+							{
+								if (jb != null) // TODO: Previous song plays briefly at the start of the next song
+								{
+									Alert.DebugLog("TikiJukebox", "play", "Playing disc: " + d.getDisc().name());
+									this.setSongEnds(d.getDisc());
+									this.removeDisc(d); // remove disc from storage
+									jb.setRecord(new ItemStack(d.getDisc(), 1));
+									jb.update();
+									jb.setPlaying(jb.getRecord().getType());
+									playing = true;
+									Main.Jukeboxes.put(jb.getBlock(), this);
+									break;
+								} else {
+									Alert.DebugLog("TikiJukebox", "play", "Jukebox not found");
+								}
+							} else {
+								Alert.DebugLog("TikiJukebox", "play", "Disc is not reporting as a music disc");
+							}
+						}
+					}
+			    }
+				if (!playing)
+				{
+					Alert.DebugLog("TikiJukebox", "play", "Not playing");
+				}
+			} else {
+				Alert.DebugLog("TikiJukebox", "play", "No discs found");
+			}
+		} else {
+			Alert.DebugLog("TikiJukebox", "play", "No discs found");
 		}
 	}
+	
+
+//	public void shuffleDiscs() {
+//		Set<Disc> lstD = this.discs;
+//		if (lstD != null)
+//		{
+//			lstD.sort((Disc z1, Disc z2) -> {
+//			   if (z1.getShuffleUUID().toString().hashCode() > z2.getShuffleUUID().toString().hashCode())
+//				     return 1;
+//				   if (z1.getShuffleUUID().toString().hashCode() < z2.getShuffleUUID().toString().hashCode())
+//				     return -1;
+//				   return 0;
+//				});
+//			this.discs = lstD;
+//		}
+//	}
 	
 }

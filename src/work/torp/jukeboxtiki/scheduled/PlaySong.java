@@ -1,9 +1,11 @@
 package work.torp.jukeboxtiki.scheduled;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map.Entry;
-
 import org.bukkit.block.Block;
+import org.bukkit.block.Jukebox;
+
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.classes.TikiJukebox;
@@ -14,29 +16,47 @@ public class PlaySong {
 		if (hmJB != null)
 		{
 			for (Entry<Block, TikiJukebox> tjb : hmJB.entrySet()) {
+				Block b = tjb.getKey();
 				TikiJukebox jb = tjb.getValue();
 				if (jb != null)
 				{
 					if (jb.getIsActive())
 					{
-						if (jb.getIsPlaying() && !jb.isJukeboxPlaying())
+						if (b.getState() instanceof Jukebox)
 						{
-							Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " is marked as playing but is not currently playing");
-							if (jb.nearbyPlayers() != null)
+							long milliseconds = new Timestamp(System.currentTimeMillis()).getTime() - jb.getSongEnds().getTime();
+							if (jb.getIsPlaying() && milliseconds > 1000)
 							{
-								if (jb.nearbyPlayers().size() > 0)
+								if (jb.nearbyPlayers() != null)
 								{
-									Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " has players nearby - starting next disc");
-									if (!jb.loadFirstDiscToStorage())
+									if (!jb.nearbyPlayers().isEmpty())
 									{
-										// unable to get disc
+										Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " has players nearby - starting next disc");
+										Main.NextSongButton.put(jb,  true);
+									} else {
+										// stop
 									}
 								}
+							}
+						}
+					}
+					
+					if (Main.NextSongButton.containsKey(jb))
+					{
+						Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " - Next song triggered");
+						if (Main.NextSongButton.get(jb)) {
+							Main.NextSongButton.remove(jb);
+							if (Main.getInstance().getInternalStorage())
+							{
+								jb.play();
 							}
 						}
 					}
 				}
 			}
 		}
+		
+		
+		
 	}
 }

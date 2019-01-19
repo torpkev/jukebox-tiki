@@ -3,22 +3,37 @@ package work.torp.jukeboxtiki;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
+import work.torp.jukeboxtiki.classes.JukeboxBlock;
 import work.torp.jukeboxtiki.classes.TikiJukebox;
 import work.torp.jukeboxtiki.commands.JukeboxCommand;
+import work.torp.jukeboxtiki.events.BlockEvents;
+import work.torp.jukeboxtiki.events.InventoryEvents;
+import work.torp.jukeboxtiki.events.PlayerEvents;
 import work.torp.jukeboxtiki.scheduled.PlaySong;
 
 public class Main  extends JavaPlugin {
 	
+	public interface IGUI extends InventoryHolder{
+	    public void onGUIClick(Player whoClicked, int slot, ItemStack clickedItem);
+	}
+	
 	// Hashmaps
 	public static HashMap<UUID, UUID> CommandUUID = new HashMap<UUID, UUID>();
 	public static HashMap<Block, TikiJukebox> Jukeboxes = new HashMap<Block, TikiJukebox>();
+	public static HashMap<Block, JukeboxBlock> JukeboxBlocks = new HashMap<Block, JukeboxBlock>();
+	public static HashMap<TikiJukebox, Boolean> NextSongButton = new HashMap<TikiJukebox, Boolean>();
+	public static HashMap<UUID, TikiJukebox> OpenStorage = new HashMap<UUID, TikiJukebox>();
 	
 	// Main
 	private static Main instance;
@@ -83,7 +98,9 @@ public class Main  extends JavaPlugin {
     public void loadEventListeners() {
 		Alert.VerboseLog("Main", "Starting Event Listeners");	
 		try {	
-			//Bukkit.getPluginManager().registerEvents(new BlockEvents(), this);
+			Bukkit.getPluginManager().registerEvents(new BlockEvents(), this);
+			Bukkit.getPluginManager().registerEvents(new InventoryEvents(), this);
+			Bukkit.getPluginManager().registerEvents(new PlayerEvents(), this);
 		} catch (Exception ex) {
 			Alert.Log("Load Event Listeners", "Unexpected Error - " + ex.getMessage());  
 		}
