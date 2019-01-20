@@ -1,6 +1,7 @@
 package work.torp.jukeboxtiki.events;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,6 +17,8 @@ import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.classes.JukeboxBlock;
 import work.torp.jukeboxtiki.classes.MusicDisc;
+import work.torp.jukeboxtiki.helpers.Check;
+import work.torp.jukeboxtiki.helpers.Convert;
 
 public class BlockEvents implements Listener {
 	@EventHandler
@@ -26,7 +29,30 @@ public class BlockEvents implements Listener {
 			if (evt.getBlock().getType() == Material.JUKEBOX) // check to make sure the block placed was a Jukebox
 			{
 				JukeboxBlock jbb = new JukeboxBlock(); // create a new JukeboxBlock
-				jbb.init(evt.getPlayer().getUniqueId(), evt.getBlock().getLocation(), new ArrayList<MusicDisc>()); // initialize the JukeboxBlock
+				
+				List<String> lstStocked = Main.getInstance().getConfig().getStringList("internal_prestocked");
+				List<MusicDisc> lstMD = new ArrayList<MusicDisc>();
+				if (lstStocked != null)
+				{
+					int iOrdBy = 0;
+					for (String discname : lstStocked)
+					{
+						Material m = Convert.StringToMaterial(discname);
+						if (m != null)
+						{
+							if (Check.isMusicDisc(m))
+							{
+								MusicDisc md = new MusicDisc();
+								md.init();
+								md.setDisc(m);
+								md.setOrderBy(iOrdBy);
+								lstMD.add(md);
+							}
+						}
+						iOrdBy++;
+					}
+				}
+				jbb.init(evt.getPlayer().getUniqueId(), evt.getBlock().getLocation(), lstMD); // initialize the JukeboxBlock
 				Alert.Player("Jukebox placed", evt.getPlayer(), true);
 			}
 		}

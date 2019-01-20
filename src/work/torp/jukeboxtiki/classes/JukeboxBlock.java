@@ -134,7 +134,7 @@ public class JukeboxBlock {
 		Main.JukeboxBlocks.put(this.getJukebox().getBlock(), this); // update the hashmap with updated values in this JukeboxBlock
 		if (hardSave)
 		{
-			// TODO: save to file/database
+			Main.getInstance().getDatabase().saveJukebox(this);
 		}
 	}
 	
@@ -151,12 +151,14 @@ public class JukeboxBlock {
 		this.setSongEnds();
 		this.isPlaying = true;
 		this.isActive = true;
-		this.save(true); // save to hashmap and hard save
+		this.save(false); // save to hashmap
+		
 	}
 	public void close()
 	{
 		this.save(true); // save to hashmap and hard save
 		Main.JukeboxBlocks.remove(this.getJukebox().getBlock()); // remove from hashmap
+		Main.getInstance().getDatabase().delJukebox(this);
 	}
 	public List<UUID> nearbyPlayers()
 	{

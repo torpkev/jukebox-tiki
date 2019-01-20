@@ -2,6 +2,7 @@ package work.torp.jukeboxtiki;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -12,6 +13,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import work.torp.jukeboxtiki.database.Database;
+import work.torp.jukeboxtiki.database.SQLite;
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.classes.JukeboxBlock;
@@ -28,6 +31,12 @@ public class Main  extends JavaPlugin {
 	    public void onGUIClick(Player whoClicked, int slot, ItemStack clickedItem);
 	}
 	
+    // Database
+	private Database db;
+    public Database getDatabase() {
+        return this.db;
+    }
+    
 	// Hashmaps
 	public static HashMap<UUID, UUID> CommandUUID = new HashMap<UUID, UUID>();
 	public static HashMap<Block, JukeboxBlock> JukeboxBlocks = new HashMap<Block, JukeboxBlock>();
@@ -62,6 +71,8 @@ public class Main  extends JavaPlugin {
     {
     	return this.internal_storage;
     }
+    private int auto_save_secs = 600;
+
     public void loadConfig() {
     	try {	
     		if (Main.getInstance().getConfig().getString("distance") != null)
@@ -90,6 +101,19 @@ public class Main  extends JavaPlugin {
 	    	} else {
 	    		Alert.Log("Main.loadConfig", "internal_storage value not found, using default of true");
 	    	}	
+	    	
+    		if (Main.getInstance().getConfig().getString("auto_save_secs") != null)
+    		{
+    			String s_auto_save_secs = Main.getInstance().getConfig().getString("auto_save_secs");
+    			int i_auto_save_secs = auto_save_secs;
+    			try{
+    				i_auto_save_secs = Integer.parseInt(s_auto_save_secs);
+    				auto_save_secs = i_auto_save_secs;
+    			} 
+    			catch (NumberFormatException ex) {
+    				Alert.DebugLog("Main", "loadConfig", "Config - distance auto_save_secs, must be a number. Using default");	
+    			}
+    		}  
     	}
     	catch (Exception ex) {
     		Alert.Log("Load Configuration", "Unexpected Error - " + ex.getMessage());  	
@@ -131,6 +155,18 @@ public class Main  extends JavaPlugin {
 			Alert.DebugLog("Main", "startPlaySong", "Unexpected Error - " + ex.getMessage());  
 		}
     }
+    public void startAutoSave() {
+    	try {
+	        BukkitTask task = new BukkitRunnable() {       	
+	            public void run() {
+	            	PlaySong.Run();
+	            }
+	        }.runTaskTimer(getInstance(), auto_save_secs, auto_save_secs);
+	        Alert.DebugLog("Main", "startAutoSave", "startAutoSave running with id " + task.getTaskId());
+    	} catch (Exception ex) {
+			Alert.DebugLog("Main", "startAutoSave", "Unexpected Error - " + ex.getMessage());  
+		}
+    }
     
     // Enable
     @Override
@@ -142,11 +178,18 @@ public class Main  extends JavaPlugin {
 			saveDefaultConfig();
 			Alert.Log("Main", "Starting Jukebox-Tiki");
 
+			this.db = new SQLite(this); // New SQLite
+	        this.db.load(); // Run load
+	        this.db.initialize(); // Run initialize
+	        
 	        loadConfig();
 	        loadEventListeners();
 	        loadCommands();
 
-	        startPlaySong();
+	        getDatabase().getJukebox(); // get entries from database
+	        
+	        startPlaySong(); // Music loop
+	        startAutoSave(); // Auto save feature - default, every 10 mins
 	        
     	} catch (Exception ex) {
 			Alert.DebugLog("Main", "onEnable", "Unexpected Error - " + ex.getMessage());  
@@ -156,7 +199,14 @@ public class Main  extends JavaPlugin {
     // Disable
     @Override
     public void onDisable() {
-    	
+    	HashMap<Block, JukeboxBlock> hmJB = Main.JukeboxBlocks; // get the JukeboxBlock entries
+		if (hmJB != null) // make sure the value isn't null
+		{
+			for (Entry<Block, JukeboxBlock> jbb : hmJB.entrySet()) { // loop through JukeboxBlock entries
+				jbb.getValue().stop();
+				getDatabase().saveJukebox(jbb.getValue());
+			}
+		}
 	}
 
 }

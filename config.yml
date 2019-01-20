@@ -13,5 +13,6 @@ internal_prestocked:
     - MUSIC_DISC_WAIT
     - MUSIC_DISC_WARD
 distance: 64
+auto_save_secs: 600
 verbose_logging: true
 debug_logging: true
