@@ -8,55 +8,52 @@ import org.bukkit.block.Jukebox;
 
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
-import work.torp.jukeboxtiki.classes.TikiJukebox;
+import work.torp.jukeboxtiki.classes.JukeboxBlock;
+//import work.torp.jukeboxtiki.classes.TikiJukebox;
+import work.torp.jukeboxtiki.helpers.Convert;
 
 public class PlaySong {
 	public static void Run() {
-		HashMap<Block, TikiJukebox> hmJB = Main.Jukeboxes;
-		if (hmJB != null)
+		HashMap<Block, JukeboxBlock> hmJB = Main.JukeboxBlocks; // get the JukeboxBlock entries
+		if (hmJB != null) // make sure the value isn't null
 		{
-			for (Entry<Block, TikiJukebox> tjb : hmJB.entrySet()) {
-				Block b = tjb.getKey();
-				TikiJukebox jb = tjb.getValue();
-				if (jb != null)
+			for (Entry<Block, JukeboxBlock> jbb : hmJB.entrySet()) { // loop through JukeboxBlock entries
+				Block b = jbb.getKey(); // get the Block
+				JukeboxBlock jb = jbb.getValue(); // get the JukeboxBlock
+				if (jb != null) // check to make sure the JukeboxBlock is not null (shouldn't happen)
 				{
-					if (jb.getIsActive())
+					if (jb.getIsActive()) // check to make sure the JukeboxBlock is active
 					{
-						if (b.getState() instanceof Jukebox)
+						if (b.getState() instanceof Jukebox) // check to make sure the block is actually a Jukebox object
 						{
-							long milliseconds = new Timestamp(System.currentTimeMillis()).getTime() - jb.getSongEnds().getTime();
-							if (jb.getIsPlaying() && milliseconds > 1000)
+							if (jb.getIsPlaying() && jb.getSongEnds() != null) // check to make sure the jukebox is playing and the song ends value is not null
 							{
-								if (jb.nearbyPlayers() != null)
+								long msec = new Timestamp(System.currentTimeMillis()).getTime() - jb.getSongEnds().getTime(); // check how many milliseconds between current time and song end time
+								if (msec > 1000) // if the JukeboxBlock says it is playing, and the song ended at least 1 second ago
 								{
-									if (!jb.nearbyPlayers().isEmpty())
+									if (jb.nearbyPlayers() != null) // check to make sure JukeboxBlock nearbyPlayers is not returning null (shouldn't happen)
 									{
-										Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " has players nearby - starting next disc");
-										Main.NextSongButton.put(jb,  true);
-									} else {
-										// stop
+										if (!jb.nearbyPlayers().isEmpty()) // check to make sure there are nearby players in the list
+										{
+											Alert.DebugLog("PlaySong", "Run", "Jukebox at: " + Convert.LocationToReadableString(jb.getLocation()) + " has players nearby - starting next disc");
+											Main.NextSong.put(jb,  true); // record that we want the next song (same as if we clicked Next Song)
+										} else {
+											jb.stop(); // no nearby players, so stop
+										}
 									}
 								}
 							}
 						}
-					}
-					
-					if (Main.NextSongButton.containsKey(jb))
-					{
-						Alert.DebugLog("PlaySong", "Run", "Jukebox ID: " + Integer.toString(jb.getJukeboxID()) + " - Next song triggered");
-						if (Main.NextSongButton.get(jb)) {
-							Main.NextSongButton.remove(jb);
-							if (Main.getInstance().getInternalStorage())
-							{
-								jb.play();
-							}
+						if (Main.NextSong.containsKey(jb)) // check if next song is requested
+						{
+							Alert.DebugLog("PlaySong", "NextSong", "Jukebox at: " + Convert.LocationToReadableString(jb.getLocation()) + " - Next song triggered");
+							Main.NextSong.remove(jb); // remove next song request
+							jb.nextDisc(); // get next disc
+							jb.play(); // play the song
 						}
 					}
 				}
 			}
 		}
-		
-		
-		
 	}
 }

@@ -15,6 +15,7 @@ import org.bukkit.block.Jukebox;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import net.md_5.bungee.api.ChatColor;
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.helpers.Check;
@@ -30,7 +31,7 @@ public class JukeboxBlock {
 	private boolean isPlaying;
 	private boolean isActive;
 	
-	// Getters (not exposing my Setters as they shouldn't be mutable)
+	// Getters
 	public UUID getOwner()
 	{
 		return this.owner;
@@ -148,7 +149,7 @@ public class JukeboxBlock {
 		this.currentDisc.init();
 		this.internalStorage = internalStorage;
 		this.setSongEnds();
-		this.isPlaying = true; // TODO: Set to true so it starts immediately
+		this.isPlaying = true;
 		this.isActive = true;
 		this.save(true); // save to hashmap and hard save
 	}
@@ -159,131 +160,184 @@ public class JukeboxBlock {
 	}
 	public List<UUID> nearbyPlayers()
 	{
-		List<UUID> lstUUID = new ArrayList<UUID>();
-		if (Bukkit.getOnlinePlayers() != null)
+		List<UUID> lstUUID = new ArrayList<UUID>(); // create a new array list to hold the nearby players
+		if (Bukkit.getOnlinePlayers() != null) // check to make sure there are players online
 		{
-			for (Player player : Bukkit.getOnlinePlayers())
+			for (Player player : Bukkit.getOnlinePlayers()) // loop through the online players
 			{
-				if (player != null)
+				if (player != null) // double check the player isn't null (shouldn't happen)
 				{
-					int dist = (int) Math.round(this.location.distance(player.getLocation()));
+					int dist = (int) Math.round(this.location.distance(player.getLocation())); // get the distance of player from jukebox
 					Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Player UUID: " + player.getUniqueId().toString() + " - Location: " + Convert.LocationToReadableString(player.getLocation()) + " - Distance from Jukebox: " + Integer.toString(dist) + " - Max distance = " + Integer.toString(Main.getInstance().getDistance()));
-					if (dist <= Main.getInstance().getDistance())
+					if (dist <= Main.getInstance().getDistance()) // if the distance is less than the value in config, add them as a nearby player
 					{
 						Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Adding Player UUID: " + player.getUniqueId().toString());
-						lstUUID.add(player.getUniqueId());
+						lstUUID.add(player.getUniqueId()); // add the player to the list
 					}
 				}
 			}
 		}
-		return lstUUID;
+		return lstUUID; // return the list
+	}
+	public void setInternalStorage(List<MusicDisc> lstMD)
+	{
+		this.internalStorage = lstMD;
 	}
 	public void addDisc(MusicDisc disc)
 	{
     	try {
-	    	if (this.internalStorage == null) {
-	    		this.internalStorage = new ArrayList<MusicDisc>();
+	    	if (this.internalStorage == null) { // check that internalStorage isn't null (shouldn't happen after init())
+	    		this.internalStorage = new ArrayList<MusicDisc>(); // if it is null for whatever reason, set it to an empty list
 	    	}
-	    	if (disc != null)
+	    	if (disc != null) // check to make sure we haven't passed a null MusicDisc
 	    	{
-	    		if (Check.isMusicDisc(disc.getDisc()))
+	    		if (Check.isMusicDisc(disc.getDisc())) // Check to make sure the Material in MusicDisc is a music disc
 	    		{
 	    			//Alert.DebugLog("Jukebox", "addDisc", "Adding " + disc.getDisc().name() + " to Jukebox ID: " + Integer.toString(this.jukeboxID));
-	    			disc.setOrderBy(this.getNextDiscOrderBy());
-	    			this.internalStorage.add(disc);
+	    			disc.setOrderBy(this.getNextDiscOrderBy()); // set the order by of the disc to be the last order by currently existing + 1
+	    			this.internalStorage.add(disc); // add the MusicDisc to internal storage
 	    		}
 	    	} else {
-	    		Error e = new Error();
-	    		e.init();
+	    		Error e = new Error(); // create a new error object
+	    		e.init(); // initialize the error object
 	    		e.set("JukeboxBlock.addDisc.001", "Jukebox", "addDisc", "Add Disc to Jukebox", "No disc passed to function", "MusicDisc disc is null", Error.Severity.WARN, UUID.randomUUID(), false, "");
-	    		e.recordError();
+	    		e.recordError(); // record the error
 	    	}
     	} catch (Exception ex) {
-    		Error e = new Error();
-    		e.init();
+    		Error e = new Error(); // create a new error object
+    		e.init(); // initialize the error object
     		e.set("JukeboxBlock.addDisc.002", "Jukebox", "addDisc", "Add Disc to Jukebox", "Unexpected Error", ex.getMessage(), Error.Severity.URGENT, UUID.randomUUID(), false, "");
-    		e.recordError();
+    		e.recordError(); // record the error
 		}
     	this.save(false); // save to hashmap only
 	}
 	public void removeDisc(MusicDisc disc)
 	{
-    	try {
-    		if (disc != null)
+    	try { // to remove, we're going to add everything except the one we want to remove to a new list and set that.  That prevents issues with referencing a record we're deleting
+    		if (disc != null) // check to make sure we didn't pass a null MusicDisc
     		{
-    			if (Check.isMusicDisc(disc.getDisc()))
+    			if (Check.isMusicDisc(disc.getDisc())) // check to make sure the Material in MusicDisc is a music disc
     			{
-    				List<MusicDisc> lstJB = new ArrayList<MusicDisc>();
-            		if (this.internalStorage != null) {
-            			for (MusicDisc m : this.internalStorage)
+    				List<MusicDisc> lstJB = new ArrayList<MusicDisc>(); // create a new list to store the MusicDisc values
+            		if (this.internalStorage != null) { // check to make sure that internalStorage isn't null (should never happen after init()) - if null, we don't need to return anything
+            			for (MusicDisc m : this.internalStorage) // loop through internalStorage
         	    		{
-            				if (!m.equals(disc))
+            				if (!m.equals(disc)) // check if the disc in storage matches the disc we want to remove, if it is not, then add the MusicDisc to the new list
         					{
-            					lstJB.add(m);
+            					lstJB.add(m); // add to list
         					} else {
         						//Alert.DebugLog("Jukebox", "removeDisc", "Removing " + disc.getDisc().name() + " from Jukebox ID: " + Integer.toString(this.jukeboxID));
         					}
         	    		}
             		}
-        	    	this.internalStorage = lstJB;
-        	    	this.sortInternalStorage();
+        	    	this.internalStorage = lstJB; // set internalStorage to our new list
+        	    	this.sortInternalStorage(); // sort the list
     			}
     		} else {
-	    		Error e = new Error();
-	    		e.init();
+	    		Error e = new Error(); // create a new error object
+	    		e.init(); // initialize the error object
 	    		e.set("JukeboxBlock.removeDisc.001", "Jukebox", "removeDisc", "Removing Disc from Jukebox", "No disc passed to function", "MusicDisc disc is null", Error.Severity.WARN, UUID.randomUUID(), false, "");
-	    		e.recordError();
+	    		e.recordError(); // record the error
     		}
     	} catch (Exception ex) {
-    		Error e = new Error();
-    		e.init();
+    		Error e = new Error(); // create a new error object
+    		e.init(); // initialize the error object
     		e.set("JukeboxBlock.removeDisc.002", "Jukebox", "removeDisc", "Removing Disc from Jukebox", "Unexpected Error", ex.getMessage(), Error.Severity.URGENT, UUID.randomUUID(), false, "");
-    		e.recordError();
+    		e.recordError(); // record the error
 		}
     	this.save(false); // save to hashmap only
 	}
 	public void nextDisc()
 	{
+		Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "nextDisc() started");
 		if (currentDisc != null) // check if the current disc isnt set
 		{
-			this.stop(); // stop song if we have one in there, this will also eject the disc to storage
+			Alert.DebugLog("JukeboxBlock", "nextDisc", "Stopping song");
+			this.stop(); // stop song if we have one in there, this will also eject the disc to storage			
 		}
 		if (this.internalStorage != null) // check our internal storage isn't null (should never happen)
 		{
-			addDisc(this.internalStorage.get(0)); // get first disc in storage
-			this.currentDisc = this.internalStorage.get(0); // set the current disc value so we know it's loaded
+			Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "internalStorage is not null");
+			
+			if (!this.internalStorage.isEmpty())
+			{
+				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "internalStorage is not empty");
+				// get the first record
+				MusicDisc md = this.internalStorage.get(0); // get first disc
+				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "MusicDisc md = " + md.getDisc().name());
+				this.currentDisc = md; // set the current disc to be the first disc
+				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "currentDisc = " + currentDisc.getDisc().name());
+				removeDisc(md); // remove first disc from storage
+				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "MusicDisc " + md.getDisc().name() + " removed from storage");
+				this.sortInternalStorage(); // sort the storage
+				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "internalStorage sorted");
+			}
+			if (this.internalStorage != null) // check our internal storage isn't null (should never happen)
+			{
+				if (!this.internalStorage.isEmpty())
+				{
+					for (MusicDisc md : this.internalStorage)
+					{
+						Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "storage after getting next disc: " + md.getDisc().name());
+					}
+				}
+			}
+		} else {
+			Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "internal storage is null");
 		}
+		Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "saving");
 		this.save(false); // save to hashmap only
 	}
 	public void stop()
 	{
-		if (this.isPlaying)
+		Alert.DebugLog(">>>", ">>>", ChatColor.GOLD + "stop() started");
+		Alert.DebugLog("JukeboxBlock", "stop", "Stopping & ejecting");
+		if (this.internalStorage != null) // check our internal storage isn't null (should never happen)
 		{
-			if (this.internalStorage != null) // check our internal storage isn't null (should never happen)
+			if (this.currentDisc != null) // check to make sure current disc is not null
 			{
-				this.currentDisc = null; // Clear current MusicDisc
-				this.isPlaying = false; // Set playing flag to false
-				removeDisc(this.currentDisc); // move disc to internal storage
+				Alert.DebugLog("JukeboxBlock", "stop", "Adding current disc to storage: " + this.currentDisc.getDisc().name());
+				addDisc(this.currentDisc); // move disc to internal storage
 			}
-			this.getJukebox().eject(); // eject the disc
-			this.getLocation().getBlock().setType(Material.JUKEBOX); // replace the block (the ItemSpawnEvent is cancelled so record never gets cleared)
-			this.save(false); // save to hashmap only
+			else 
+			{
+				Alert.DebugLog("JukeboxBlock", "stop", "current disc is null - nothing to do here");
+			}
+			Alert.DebugLog("JukeboxBlock", "stop", "clearing current disc & setting isplaying = false");
+			this.currentDisc = null; // Clear current MusicDisc
+			this.isPlaying = false; // Set playing flag to false
 		}
+		Alert.DebugLog("JukeboxBlock", "stop", "Ejecting disc");
+		this.getJukebox().eject(); // eject the disc
+		this.getLocation().getBlock().setType(Material.JUKEBOX); // replace the block (the ItemSpawnEvent is cancelled so record never gets cleared)
+		this.save(false); // save to hashmap only
+		Alert.DebugLog(">>>", ">>>", ChatColor.GOLD + "stop() ended");
 	}
 	public void play()
 	{
+		Alert.DebugLog(ChatColor.YELLOW + ">>>", ChatColor.YELLOW +">>>", ChatColor.AQUA + "play() started");
+		Jukebox jb = this.getJukebox();
 		if (!this.isPlaying)
 		{
-			if (this.getCurrentDisc() == null)
+			if (this.currentDisc == null) // check to see if we have a disc loaded
 			{
-				this.nextDisc(); // as there is no current disc, grab the next one
+				Alert.Log("JukeboxBlock.play", "Getting the next disc");
+				this.nextDisc(); // as there is no current disc, grab the next one if we can
 			}
-			this.setSongEnds(); // set the timestamp the song ends
-			this.getJukebox().setRecord(new ItemStack(this.getCurrentDisc().getDisc(), 1)); // set the record into the block
-			this.getJukebox().update(); // update the block (possibly overkill)
-			this.getJukebox().setPlaying(this.getCurrentDisc().getDisc()); // set the record to play
-			this.getJukebox().update(); // update the block again (almost certainly overkill)
-			this.save(false); // Save to hashmap only
+			if (this.currentDisc != null) // check to see if we have a disc now, if we do, play
+			{
+				this.setSongEnds(); // set the timestamp the song ends
+				ItemStack istack = new ItemStack(this.currentDisc.getDisc(), 1); // create item stack
+				jb.setRecord(istack); // set the record into the block
+				jb.setPlaying(this.getCurrentDisc().getDisc()); // set the record to play
+				jb.update();
+				this.save(false); // Save to hashmap only
+			} else {
+				Alert.Log("JukeboxBlock.play", "Current disc is null");
+				this.isPlaying = false; // update our playing flag to show false
+			}
+		} else {
+			Alert.Log("JukeboxBlock.play", "isPlaying is set to false");
 		}
 	}
 }

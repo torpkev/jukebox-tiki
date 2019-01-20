@@ -2,6 +2,8 @@ package work.torp.jukeboxtiki.classes;
 
 import org.bukkit.Material;
 
+import work.torp.jukeboxtiki.helpers.Provide;
+
 public class MusicDisc {
 	// Private objects
 	private Material disc;
@@ -51,11 +53,11 @@ public class MusicDisc {
 		this.seconds = 0;
 		this.orderby = 0;
 	}
-	public void set(Material disc, String name, int seconds, int orderby)
+	public void set(Material disc, int orderby)
 	{
 		this.disc = disc;
-		this.name = name;
-		this.seconds = seconds;
+		this.name = Provide.getNameFromDisc(disc);
+		this.seconds = Provide.getRecordLengthFromDisc(disc);
 		this.orderby = orderby;
 	}
 }

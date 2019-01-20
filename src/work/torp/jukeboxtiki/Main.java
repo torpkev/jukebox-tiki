@@ -15,9 +15,9 @@ import org.bukkit.scheduler.BukkitTask;
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.classes.JukeboxBlock;
-import work.torp.jukeboxtiki.classes.TikiJukebox;
 import work.torp.jukeboxtiki.commands.JukeboxCommand;
 import work.torp.jukeboxtiki.events.BlockEvents;
+import work.torp.jukeboxtiki.events.EntityEvents;
 import work.torp.jukeboxtiki.events.InventoryEvents;
 import work.torp.jukeboxtiki.events.PlayerEvents;
 import work.torp.jukeboxtiki.scheduled.PlaySong;
@@ -30,10 +30,11 @@ public class Main  extends JavaPlugin {
 	
 	// Hashmaps
 	public static HashMap<UUID, UUID> CommandUUID = new HashMap<UUID, UUID>();
-	public static HashMap<Block, TikiJukebox> Jukeboxes = new HashMap<Block, TikiJukebox>();
 	public static HashMap<Block, JukeboxBlock> JukeboxBlocks = new HashMap<Block, JukeboxBlock>();
-	public static HashMap<TikiJukebox, Boolean> NextSongButton = new HashMap<TikiJukebox, Boolean>();
-	public static HashMap<UUID, TikiJukebox> OpenStorage = new HashMap<UUID, TikiJukebox>();
+	public static HashMap<JukeboxBlock, Boolean> NextSong = new HashMap<JukeboxBlock, Boolean>();
+	public static HashMap<UUID, JukeboxBlock> StorageOpen = new HashMap<UUID, JukeboxBlock>();
+	public static HashMap<UUID, JukeboxBlock> ControlsOpen = new HashMap<UUID, JukeboxBlock>();
+	public static HashMap<UUID, ItemStack[]> PlayerInventory = new HashMap<UUID, ItemStack[]>();
 	
 	// Main
 	private static Main instance;
@@ -99,6 +100,7 @@ public class Main  extends JavaPlugin {
 		Alert.VerboseLog("Main", "Starting Event Listeners");	
 		try {	
 			Bukkit.getPluginManager().registerEvents(new BlockEvents(), this);
+			Bukkit.getPluginManager().registerEvents(new EntityEvents(), this);
 			Bukkit.getPluginManager().registerEvents(new InventoryEvents(), this);
 			Bukkit.getPluginManager().registerEvents(new PlayerEvents(), this);
 		} catch (Exception ex) {

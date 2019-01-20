@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 
-import work.torp.jukeboxtiki.classes.Disc;
+import work.torp.jukeboxtiki.classes.MusicDisc;
 
 public class Provide {
 	public static List<Material> getDiscMaterials()
@@ -26,16 +26,16 @@ public class Provide {
 		lstM.add(Material.MUSIC_DISC_WARD);
 		return lstM;
 	}
-	public static List<Disc> getDiscs()
+	public static List<MusicDisc> getDiscs()
 	{
-		List<Disc> lstD = new ArrayList<Disc>();
+		List<MusicDisc> lstD = new ArrayList<MusicDisc>();
 		
 		if (getDiscMaterials() != null)
 		{
 			int i = 0;
 			for (Material m : getDiscMaterials())
 			{
-				Disc d = new Disc();
+				MusicDisc d = new MusicDisc();
 				d.init();
 				d.setDisc(m);
 				d.setOrderBy(i);
@@ -45,9 +45,9 @@ public class Provide {
 		}
 		return lstD;
 	}
-	public static Disc getDiscByName(String discname)
+	public static MusicDisc getDiscByName(String discname)
 	{
-		Disc d = new Disc();
+		MusicDisc d = new MusicDisc();
 		d.init();
 		Material m = Material.valueOf(discname);
 		if (m != null)
@@ -101,6 +101,52 @@ public class Provide {
 					break;
 		}
 		return s;
+	}
+	public static String getNameFromDisc(Material disc)
+	{
+		String retVal = "";
+		switch (disc.name())
+		{
+			case "MUSIC_DISC_11":
+				retVal = "Disc 11";
+				break;
+			case "MUSIC_DISC_13":
+				retVal = "Disc 13";
+				break;
+			case "MUSIC_DISC_BLOCKS":
+				retVal = "Blocks";
+				break;
+			case "MUSIC_DISC_CAT":
+				retVal = "Cat";
+				break;
+			case "MUSIC_DISC_CHIRP":
+				retVal = "Chirp";
+				break;
+			case "MUSIC_DISC_FAR":
+				retVal = "Far";
+				break;
+			case "MUSIC_DISC_MALL":
+				retVal = "Mall";
+				break;
+			case "MUSIC_DISC_MELLOHI":
+				retVal = "Mellohi";
+				break;
+			case "MUSIC_DISC_STAL":
+				retVal = "Stal";
+				break;
+			case "MUSIC_DISC_STRAD":
+				retVal = "Strad";
+				break;
+			case "MUSIC_DISC_WAIT":
+				retVal = "Wait";
+				break;
+			case "MUSIC_DISC_WARD":
+				retVal = "Ward";
+				break;
+				default:
+					break;
+		}
+		return retVal;
 	}
 	public static int getRecordLengthFromDisc(Material disc)
 	{
