@@ -154,12 +154,10 @@ public class Provide {
 		switch (disc.name())
 		{
 			case "MUSIC_DISC_11":
-				//s = 71;
-				s = 10;
+				s = 71;
 				break;
 			case "MUSIC_DISC_13":
-				//s =  178;
-				s = 10;
+				s =  178;
 				break;
 			case "MUSIC_DISC_BLOCKS":
 				s =  345;
@@ -171,15 +169,13 @@ public class Provide {
 				s =  185;
 				break;
 			case "MUSIC_DISC_FAR":			
-				//s =  174;
-				s = 10;
+				s =  174;
 				break;
 			case "MUSIC_DISC_MALL":
 				s =  197;
 				break;
 			case "MUSIC_DISC_MELLOHI":
-				//s =  96;
-				s = 10;
+				s =  96;
 				break;
 			case "MUSIC_DISC_STAL":
 				s =  150;

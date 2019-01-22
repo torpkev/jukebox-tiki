@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import work.torp.jukeboxtiki.Main;
 import work.torp.jukeboxtiki.alerts.Alert;
 import work.torp.jukeboxtiki.classes.StorageGUI;
+import work.torp.jukeboxtiki.helpers.Check;
 import work.torp.jukeboxtiki.classes.ControlsGUI;
 import work.torp.jukeboxtiki.classes.JukeboxBlock;
 
@@ -37,31 +38,43 @@ public class PlayerEvents implements Listener {
 								{
 									if (evt.getPlayer().isSneaking()) // check to see if the player is sneaking (holding shift)
 									{
-										// right clicking a Jukebox while sneaking opens the storage
-										Alert.DebugLog("PlayerEvents", "onPlayerInteract.OpenStorage", "Opening Storage GUI");
-										jbb.stop(); // stop the song (and remove disc to storage)
-										Main.StorageOpen.put(evt.getPlayer().getUniqueId(), jbb); // set the JukeboxBlock to StorageOpen hashmap
-										StorageGUI gui = new StorageGUI();
-										gui.setDiscs(jbb.getInternalStorage()); // load the internal storage into the GUI
-										evt.getPlayer().openInventory(gui.getInventory()); // display the GUI
-									} else {
-										// right clicking a Jukebox without sneaking opens the controls
-										Alert.DebugLog("PlayerEvents", "onPlayerInteract.OpenControls", "Opening Controls GUI");
-										Main.ControlsOpen.put(evt.getPlayer().getUniqueId(), jbb); // set the JukeboxBlock to StorageOpen hashmap
-										ControlsGUI gui = new ControlsGUI(); 
-										ItemStack[] inv = evt.getPlayer().getInventory().getContents(); // Get player inventory
-										Main.PlayerInventory.put(evt.getPlayer().getUniqueId(), inv); // Save the inventory to hashmap
-										evt.getPlayer().getInventory().clear(); // Clear the inventory
-										ItemStack isNA = new ItemStack(Material.GRAY_STAINED_GLASS_PANE, 1);
-										ItemMeta imNA = isNA.getItemMeta();
-										imNA.setDisplayName(".");
-										imNA.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-										isNA.setItemMeta(imNA);
-										for (int i = 0; i <= 36; i++) { // Loop through the inventory and replace with gray stained glass
-											evt.getPlayer().getInventory().setItem(i, isNA);
+										if (Check.hasPermission(evt.getPlayer(), "jukebox.admin") || jbb.getOwner().equals(evt.getPlayer().getUniqueId()))
+										{
+											// right clicking a Jukebox while sneaking opens the storage
+											Alert.DebugLog("PlayerEvents", "onPlayerInteract.OpenStorage", "Opening Storage GUI");
+											jbb.stop(); // stop the song (and remove disc to storage)
+											Main.StorageOpen.put(evt.getPlayer().getUniqueId(), jbb); // set the JukeboxBlock to StorageOpen hashmap
+											StorageGUI gui = new StorageGUI();
+											gui.setDiscs(jbb.getInternalStorage()); // load the internal storage into the GUI
+											evt.getPlayer().openInventory(gui.getInventory()); // display the GUI
+										} else {
+											Alert.Player("You do not have permission to access the Jukebox storage", evt.getPlayer(), true);
+											return;
 										}
-										
-										evt.getPlayer().openInventory(gui.getInventory()); // display the GUI
+									} else {
+										if (Check.hasPermission(evt.getPlayer(), "jukebox.admin") || jbb.getOwner().equals(evt.getPlayer().getUniqueId()))
+										{
+											// right clicking a Jukebox without sneaking opens the controls
+											Alert.DebugLog("PlayerEvents", "onPlayerInteract.OpenControls", "Opening Controls GUI");
+											Main.ControlsOpen.put(evt.getPlayer().getUniqueId(), jbb); // set the JukeboxBlock to StorageOpen hashmap
+											ControlsGUI gui = new ControlsGUI(); 
+											ItemStack[] inv = evt.getPlayer().getInventory().getContents(); // Get player inventory
+											Main.PlayerInventory.put(evt.getPlayer().getUniqueId(), inv); // Save the inventory to hashmap
+											evt.getPlayer().getInventory().clear(); // Clear the inventory
+											ItemStack isNA = new ItemStack(Material.GRAY_STAINED_GLASS_PANE, 1);
+											ItemMeta imNA = isNA.getItemMeta();
+											imNA.setDisplayName(".");
+											imNA.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+											isNA.setItemMeta(imNA);
+											for (int i = 0; i <= 36; i++) { // Loop through the inventory and replace with gray stained glass
+												evt.getPlayer().getInventory().setItem(i, isNA);
+											}
+											
+											evt.getPlayer().openInventory(gui.getInventory()); // display the GUI
+										} else {
+											Alert.Player("You do not have permission to access the Jukebox controls", evt.getPlayer(), true);
+											return;
+										}
 									}
 									evt.setCancelled(true); // cancel the event
 								}

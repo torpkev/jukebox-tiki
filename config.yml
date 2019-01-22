@@ -1,4 +1,3 @@
-internal_storage: true
 internal_prestocked: 
     - MUSIC_DISC_11
     - MUSIC_DISC_13
@@ -14,5 +13,5 @@ internal_prestocked:
     - MUSIC_DISC_WARD
 distance: 64
 auto_save_secs: 600
-verbose_logging: true
-debug_logging: true
+verbose_logging: false
+debug_logging: false

@@ -41,7 +41,7 @@ public class JukeboxCommand implements CommandExecutor {
 				if (sender instanceof Player)
 				{
 					Player player = (Player) sender;
-					if (Check.hasPermission(player, "jukebox.save"))
+					if (Check.hasPermission(player, "jukebox.admin"))
 					{
 						hasPerm = true;
 					}

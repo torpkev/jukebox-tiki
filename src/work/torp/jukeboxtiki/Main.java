@@ -66,11 +66,6 @@ public class Main  extends JavaPlugin {
     {
     	return this.distance;
     }
-    private boolean internal_storage = true;
-    public boolean getInternalStorage()
-    {
-    	return this.internal_storage;
-    }
     private int auto_save_secs = 600;
 
     public void loadConfig() {
@@ -87,20 +82,6 @@ public class Main  extends JavaPlugin {
     				Alert.DebugLog("Main", "loadConfig", "Config - distance invalid, must be a number. Using default");	
     			}
     		}  
-    		
-    		String s_internal_storage = Main.getInstance().getConfig().getString("internal_storage");
-    		internal_storage = false; // default to false
-	    	if (s_internal_storage != null) {
-	    		if (s_internal_storage.equalsIgnoreCase("true")) {
-	    			internal_storage = true;
-				} else if (s_internal_storage.equalsIgnoreCase("true")) {
-					internal_storage = false;
-				} else {
-					Alert.Log("Main.loadConfig", "internal_storage value is invalid, using default of true");
-				}
-	    	} else {
-	    		Alert.Log("Main.loadConfig", "internal_storage value not found, using default of true");
-	    	}	
 	    	
     		if (Main.getInstance().getConfig().getString("auto_save_secs") != null)
     		{

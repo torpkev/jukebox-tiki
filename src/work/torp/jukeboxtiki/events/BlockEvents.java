@@ -28,32 +28,35 @@ public class BlockEvents implements Listener {
 		{
 			if (evt.getBlock().getType() == Material.JUKEBOX) // check to make sure the block placed was a Jukebox
 			{
-				JukeboxBlock jbb = new JukeboxBlock(); // create a new JukeboxBlock
-				
-				List<String> lstStocked = Main.getInstance().getConfig().getStringList("internal_prestocked");
-				List<MusicDisc> lstMD = new ArrayList<MusicDisc>();
-				if (lstStocked != null)
+				if (Check.hasPermission(evt.getPlayer(), "jukebox.place"))
 				{
-					int iOrdBy = 0;
-					for (String discname : lstStocked)
+					JukeboxBlock jbb = new JukeboxBlock(); // create a new JukeboxBlock
+					
+					List<String> lstStocked = Main.getInstance().getConfig().getStringList("internal_prestocked");
+					List<MusicDisc> lstMD = new ArrayList<MusicDisc>();
+					if (lstStocked != null)
 					{
-						Material m = Convert.StringToMaterial(discname);
-						if (m != null)
+						int iOrdBy = 0;
+						for (String discname : lstStocked)
 						{
-							if (Check.isMusicDisc(m))
+							Material m = Convert.StringToMaterial(discname);
+							if (m != null)
 							{
-								MusicDisc md = new MusicDisc();
-								md.init();
-								md.setDisc(m);
-								md.setOrderBy(iOrdBy);
-								lstMD.add(md);
+								if (Check.isMusicDisc(m))
+								{
+									MusicDisc md = new MusicDisc();
+									md.init();
+									md.setDisc(m);
+									md.setOrderBy(iOrdBy);
+									lstMD.add(md);
+								}
 							}
+							iOrdBy++;
 						}
-						iOrdBy++;
 					}
+					jbb.init(evt.getPlayer().getUniqueId(), evt.getBlock().getLocation(), lstMD); // initialize the JukeboxBlock
+					Alert.Player("Jukebox placed", evt.getPlayer(), true);
 				}
-				jbb.init(evt.getPlayer().getUniqueId(), evt.getBlock().getLocation(), lstMD); // initialize the JukeboxBlock
-				Alert.Player("Jukebox placed", evt.getPlayer(), true);
 			}
 		}
 	}
@@ -69,21 +72,26 @@ public class BlockEvents implements Listener {
 					JukeboxBlock jbb = Main.JukeboxBlocks.get(evt.getBlock()); // get the JukeboxBlock
 					if (jbb != null) // check to make sure the JukeboxBlock is not null (shouldn't happen)
 					{
-						Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is being broken");
-						if (jbb.getInternalStorage() != null) // check to make sure the internal storage isn't null (shouldn't happen after init())
+						if (Check.hasPermission(evt.getPlayer(), "jukebox.admin") || jbb.getOwner().equals(evt.getPlayer().getUniqueId()))
 						{
-							Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock storage is not null");
-							if (jbb.getInternalStorage().isEmpty() || jbb.getInternalStorage().size() == 0)
+							Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is being broken");
+							if (jbb.getInternalStorage() != null) // check to make sure the internal storage isn't null (shouldn't happen after init())
 							{
-								Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is empty");
-								jbb.close(); // close our JukeboxBlock (removes it from HashMap and file/database)
-								Alert.Player("Jukebox broken", evt.getPlayer(), true);
-							} else {
-								Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is not empty - cancel break");
-								evt.setCancelled(true);
-								Alert.Player("You must remove the music discs from the Jukebox before breaking it", evt.getPlayer(), true);
-								return;
+								Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock storage is not null");
+								if (jbb.getInternalStorage().isEmpty() || jbb.getInternalStorage().size() == 0)
+								{
+									Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is empty");
+									jbb.close(); // close our JukeboxBlock (removes it from HashMap and file/database)
+									Alert.Player("Jukebox broken", evt.getPlayer(), true);
+								} else {
+									Alert.DebugLog("BlockEvents", "onBlockBreak", "JukeboxBlock is not empty - cancel break");
+									evt.setCancelled(true);
+									Alert.Player("You must remove the music discs from the Jukebox before breaking it", evt.getPlayer(), true);
+									return;
+								}
 							}
+						} else {
+							Alert.Player("You do not have permission to break this Jukebox", evt.getPlayer(), true);
 						}
 					}
 				}
