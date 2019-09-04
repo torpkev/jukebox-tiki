@@ -38,6 +38,7 @@ public class Main  extends JavaPlugin {
     }
     
 	// Hashmaps
+    // TODO:  Make these private and provide getters & setters
 	public static HashMap<UUID, UUID> CommandUUID = new HashMap<UUID, UUID>();
 	public static HashMap<Block, JukeboxBlock> JukeboxBlocks = new HashMap<Block, JukeboxBlock>();
 	public static HashMap<JukeboxBlock, Boolean> NextSong = new HashMap<JukeboxBlock, Boolean>();
@@ -61,6 +62,7 @@ public class Main  extends JavaPlugin {
     }
 
     // Configuration
+    // TODO:  config to its own class
     private int distance = 64;
     public int getDistance() 
     {

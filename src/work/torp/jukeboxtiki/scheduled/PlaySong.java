@@ -38,10 +38,14 @@ public class PlaySong {
 											Alert.DebugLog("PlaySong", "Run", "Jukebox at: " + Convert.LocationToReadableString(jb.getLocation()) + " has players nearby - starting next disc");
 											Main.NextSong.put(jb,  true); // record that we want the next song (same as if we clicked Next Song)
 										} else {
-											jb.stop(); // no nearby players, so stop
+											//jb.stop(); // no nearby players, so stop
+											Alert.DebugLog("PlaySong", "Run", "No nearby players");
 										}
+									} else {
+										Alert.DebugLog("PlaySong", "Run", "No nearby players");
 									}
-								}
+									
+								} 
 							}
 						}
 						if (Main.NextSong.containsKey(jb)) // check if next song is requested

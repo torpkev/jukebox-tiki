@@ -14,6 +14,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Jukebox;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import net.md_5.bungee.api.ChatColor;
 import work.torp.jukeboxtiki.Main;
@@ -30,6 +31,7 @@ public class JukeboxBlock {
 	private Timestamp songEnds;
 	private boolean isPlaying;
 	private boolean isActive;
+	private boolean noplayers;
 	
 	// Getters
 	public UUID getOwner()
@@ -59,6 +61,13 @@ public class JukeboxBlock {
 	public boolean getIsActive()
 	{
 		return this.isActive;
+	}
+	public boolean getNoPlayers()
+	{
+		return this.noplayers;
+	}
+	public void setNoPlayers(boolean noplayers) {
+		this.noplayers = noplayers;
 	}
 	
 	// Private Functions
@@ -270,6 +279,7 @@ public class JukeboxBlock {
 				this.currentDisc = md; // set the current disc to be the first disc
 				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "currentDisc = " + currentDisc.getDisc().name());
 				removeDisc(md); // remove first disc from storage
+				addDisc(this.currentDisc); // move disc to internal storage
 				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "MusicDisc " + md.getDisc().name() + " removed from storage");
 				this.sortInternalStorage(); // sort the storage
 				Alert.DebugLog(ChatColor.RED + ">>>", ChatColor.RED +">>>", "internalStorage sorted");
@@ -296,21 +306,27 @@ public class JukeboxBlock {
 		Alert.DebugLog("JukeboxBlock", "stop", "Stopping & ejecting");
 		if (this.internalStorage != null) // check our internal storage isn't null (should never happen)
 		{
-			if (this.currentDisc != null) // check to make sure current disc is not null
-			{
-				Alert.DebugLog("JukeboxBlock", "stop", "Adding current disc to storage: " + this.currentDisc.getDisc().name());
-				addDisc(this.currentDisc); // move disc to internal storage
-			}
-			else 
-			{
-				Alert.DebugLog("JukeboxBlock", "stop", "current disc is null - nothing to do here");
-			}
+//			if (this.currentDisc != null) // check to make sure current disc is not null
+//			{
+//				//Alert.DebugLog("JukeboxBlock", "stop", "Adding current disc to storage: " + this.currentDisc.getDisc().name());
+//				//addDisc(this.currentDisc); // move disc to internal storage
+//			}
+//			else 
+//			{
+//				Alert.DebugLog("JukeboxBlock", "stop", "current disc is null - nothing to do here");
+//			}
 			Alert.DebugLog("JukeboxBlock", "stop", "clearing current disc & setting isplaying = false");
 			this.currentDisc = null; // Clear current MusicDisc
 			this.isPlaying = false; // Set playing flag to false
 		}
 		Alert.DebugLog("JukeboxBlock", "stop", "Ejecting disc");
-		this.getJukebox().eject(); // eject the disc
+		
+		
+		try {
+			this.getJukebox().eject(); // eject the disc 
+		} catch (Exception ex) {
+			
+		}
 		this.getLocation().getBlock().setType(Material.JUKEBOX); // replace the block (the ItemSpawnEvent is cancelled so record never gets cleared)
 		this.save(false); // save to hashmap only
 		Alert.DebugLog(">>>", ">>>", ChatColor.GOLD + "stop() ended");
@@ -323,23 +339,28 @@ public class JukeboxBlock {
 		{
 			if (this.currentDisc == null) // check to see if we have a disc loaded
 			{
-				Alert.Log("JukeboxBlock.play", "Getting the next disc");
+				//Alert.Log("JukeboxBlock.play", "Getting the next disc");
 				this.nextDisc(); // as there is no current disc, grab the next one if we can
 			}
 			if (this.currentDisc != null) // check to see if we have a disc now, if we do, play
 			{
 				this.setSongEnds(); // set the timestamp the song ends
 				ItemStack istack = new ItemStack(this.currentDisc.getDisc(), 1); // create item stack
+				ItemMeta imeta = istack.getItemMeta();
+				List<String> lore = new ArrayList<String>();
+				lore.add("JUKEBOX");
+				imeta.setLore(lore);
+				istack.setItemMeta(imeta);
 				jb.setRecord(istack); // set the record into the block
 				jb.setPlaying(this.getCurrentDisc().getDisc()); // set the record to play
 				jb.update();
 				this.save(false); // Save to hashmap only
 			} else {
-				Alert.Log("JukeboxBlock.play", "Current disc is null");
+				//Alert.Log("JukeboxBlock.play", "Current disc is null");
 				this.isPlaying = false; // update our playing flag to show false
 			}
 		} else {
-			Alert.Log("JukeboxBlock.play", "isPlaying is set to false");
+			//Alert.Log("JukeboxBlock.play", "isPlaying is set to false");
 		}
 	}
 }

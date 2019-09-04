@@ -1,10 +1,16 @@
 package work.torp.jukeboxtiki.events;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +23,30 @@ import work.torp.jukeboxtiki.helpers.Check;
 import work.torp.jukeboxtiki.classes.ControlsGUI;
 import work.torp.jukeboxtiki.classes.JukeboxBlock;
 
+
 public class PlayerEvents implements Listener {
+	@EventHandler
+	public void onPlayerDropItemEvent(PlayerDropItemEvent evt) {
+		Alert.DebugLog("PlayerEvents", "PlayerDropItemEvent", "Dropped!");
+		if (Check.isMusicDisc(evt.getItemDrop().getItemStack().getType())) {
+			ItemStack mditemstack = evt.getItemDrop().getItemStack();
+			ItemMeta mditemmeta = mditemstack.getItemMeta();
+			List<String> lore = new ArrayList<String>();
+			lore.add("NOT JUKEBOX");
+			mditemmeta.setLore(lore);
+			mditemstack.setItemMeta(mditemmeta);
+			evt.getItemDrop().setItemStack(mditemstack);
+		}
+	}
+	@EventHandler
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent evt) {
+		if (evt.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+			//Alert.Log("PlayerInteractEntity", "ITEM FRAME!");
+			if (evt.getHand() == EquipmentSlot.HAND) {
+				//Alert.Log("PlayerInteractEntity", "ITEM FRAME hand!");
+			}
+		}
+	}
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent evt)
 	{
@@ -76,13 +105,18 @@ public class PlayerEvents implements Listener {
 											return;
 										}
 									}
+									//Alert.Log("PlayerInteractEvent", "Cancelling event");
 									evt.setCancelled(true); // cancel the event
 								}
 							}
 						}
 					}
 				}
+			} else {
+				//Alert.Log("PlayerInteractEvent", evt.getMaterial().name());
 			}
+		} else {
+			//Alert.Log("PlayerInteractEvent", evt.getMaterial().name());
 		}
 	}
 }

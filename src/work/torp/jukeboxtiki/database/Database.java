@@ -146,6 +146,7 @@ public abstract class Database {
         		}
         	}
             
+        	// TODO: Replace these with parameterized strings
             
             sql = "DELETE FROM jukebox WHERE world = '" + jbb.getLocation().getWorld().getName() + "' AND x = " + Integer.toString(jbb.getLocation().getBlockX()) + " AND y = " + Integer.toString(jbb.getLocation().getBlockY()) + " AND z = " + Integer.toString(jbb.getLocation().getBlockZ()) + "; ";
             psDel = conn.prepareStatement(sql);

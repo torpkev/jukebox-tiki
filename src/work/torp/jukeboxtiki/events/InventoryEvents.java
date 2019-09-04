@@ -7,6 +7,7 @@ import java.util.List;
 //import java.util.Set;
 import java.util.UUID;
 
+
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -15,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import net.md_5.bungee.api.ChatColor;
 import work.torp.jukeboxtiki.Main;
@@ -28,6 +30,7 @@ import work.torp.jukeboxtiki.helpers.Check;
 
 public class InventoryEvents implements Listener {
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
     public void onInventoryClick(InventoryClickEvent e) {  
         if(e.getInventory().getHolder() instanceof IGUI) // check if the inventory opened is our storage GUI
@@ -61,6 +64,50 @@ public class InventoryEvents implements Listener {
 	            				{
 	            					Main.NextSong.put(jbb, true);
 	            				}
+	            				if (e.getRawSlot() == 8) // remove 
+	            				{
+	        						if (Check.hasPermission(player, "jukebox.admin") || jbb.getOwner().equals(player.getUniqueId()))
+	        						{
+	        							List<MusicDisc> lstMD = jbb.getInternalStorage();
+		            					jbb.stop();
+		            					
+		            					
+		            					
+		            					jbb.close();
+		            					
+		            					jbb.getLocation().getBlock().setType(Material.AIR);
+		            					jbb.getLocation().getBlock().getState().update(true);
+		            					ItemStack itemstack = new ItemStack(Material.JUKEBOX, 1); 
+		            					jbb.getLocation().getWorld().dropItem(jbb.getLocation(), itemstack);
+		            					
+		            					if (lstMD != null)
+		            					{
+		            						if (!lstMD.isEmpty()) {
+		            							for (MusicDisc md : lstMD) {
+		            								//Alert.Log("", "MusicDisc = " + md.getDisc().name());
+		        	            					ItemStack mditemstack = new ItemStack(md.getDisc(), 1); 
+		        	            					ItemMeta mditemmeta = mditemstack.getItemMeta();
+		        	            					List<String> lore = new ArrayList<String>();
+		        	        						lore.add("NOT JUKEBOX");
+		        	        						mditemmeta.setLore(lore);
+		        	        						mditemstack.setItemMeta(mditemmeta);
+		        	            					jbb.getLocation().getWorld().dropItem(jbb.getLocation(), mditemstack);
+		            							}
+		            						} else {
+		            							//Alert.Log("", "Storage is empty");
+		            						}
+		            					} else {
+		            						//Alert.Log("", "Storage is empty");
+		            					}
+	        						} else {
+	        							Alert.Player("You do not have permission to break this Jukebox", player, true);
+	        						}
+	            					e.setCancelled(true);
+	            					player.closeInventory();
+	            					return;
+            					}
+	            					
+	            				
 	            				IGUI gui = (IGUI) e.getInventory().getHolder(); // get the InventoryHolder
 	            				gui.onGUIClick((Player)e.getWhoClicked(), e.getRawSlot(), e.getCurrentItem()); // send the info to the GUI class 
 	            			}
@@ -71,6 +118,7 @@ public class InventoryEvents implements Listener {
         	}  
         }      
     }
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent e)
 	{
@@ -113,6 +161,7 @@ public class InventoryEvents implements Listener {
 				}
 			}
 		}
+
 		if (ChatColor.stripColor(e.getInventory().getName()).equals(ChatColor.stripColor("Jukebox Controls"))) // check if the inventory being closed is our Jukebox Storage
 		{
 			Alert.DebugLog("InventoryEvents", "onInventoryClose", "Jukebox Controls closed");
@@ -126,7 +175,7 @@ public class InventoryEvents implements Listener {
 					HashMap<UUID, ItemStack[]> hmInv = Main.PlayerInventory;
 					if (hmInv != null)
 					{
-						Alert.Log("InventoryTest", "Getting player inventory back from hashmap");
+						Alert.DebugLog("InventoryTest", "onInventoryClose", "Getting player inventory back from hashmap");
 						ItemStack[] inv = hmInv.get(e.getPlayer().getUniqueId());
 						if (inv != null)
 						{
@@ -149,7 +198,7 @@ public class InventoryEvents implements Listener {
 							}
 						    Main.PlayerInventory.remove(e.getPlayer().getUniqueId());
 						} else {
-							Alert.Log("InventoryTest", "No such entry in hashmap");
+							Alert.DebugLog("InventoryTest", "onInventoryClose", "No such entry in hashmap");
 						}
 					}
 				}

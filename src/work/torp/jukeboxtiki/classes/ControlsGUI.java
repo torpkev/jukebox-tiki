@@ -37,6 +37,12 @@ public class ControlsGUI implements IGUI{
 		imPlay.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 		isPlay.setItemMeta(imPlay);
 		
+        ItemStack isRemove = new ItemStack(Material.WOODEN_AXE, 1);
+		ItemMeta imRemove = isRemove.getItemMeta();
+		imRemove.setDisplayName("Remove Jukebox");
+		imRemove.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+		isRemove.setItemMeta(imRemove);
+		
         GUI.setItem(0, isNA);
         GUI.setItem(1, isNA);
         GUI.setItem(2, isNA);
@@ -45,7 +51,7 @@ public class ControlsGUI implements IGUI{
         GUI.setItem(5, isPlay);
         GUI.setItem(6, isNA);
         GUI.setItem(7, isNA);
-        GUI.setItem(8, isNA);
+        GUI.setItem(8, isRemove);
 
         return GUI;
     }
