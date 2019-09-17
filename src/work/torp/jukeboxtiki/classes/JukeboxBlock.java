@@ -178,12 +178,14 @@ public class JukeboxBlock {
 			{
 				if (player != null) // double check the player isn't null (shouldn't happen)
 				{
-					int dist = (int) Math.round(this.location.distance(player.getLocation())); // get the distance of player from jukebox
-					Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Player UUID: " + player.getUniqueId().toString() + " - Location: " + Convert.LocationToReadableString(player.getLocation()) + " - Distance from Jukebox: " + Integer.toString(dist) + " - Max distance = " + Integer.toString(Main.getInstance().getDistance()));
-					if (dist <= Main.getInstance().getDistance()) // if the distance is less than the value in config, add them as a nearby player
-					{
-						Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Adding Player UUID: " + player.getUniqueId().toString());
-						lstUUID.add(player.getUniqueId()); // add the player to the list
+					if (player.getWorld().equals(this.location.getWorld())) {
+						int dist = (int) Math.round(this.location.distance(player.getLocation())); // get the distance of player from jukebox
+						Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Player UUID: " + player.getUniqueId().toString() + " - Location: " + Convert.LocationToReadableString(player.getLocation()) + " - Distance from Jukebox: " + Integer.toString(dist) + " - Max distance = " + Integer.toString(Main.getInstance().getDistance()));
+						if (dist <= Main.getInstance().getDistance()) // if the distance is less than the value in config, add them as a nearby player
+						{
+							Alert.DebugLog("JukeboxBlock", "nearbyPlayers", "Adding Player UUID: " + player.getUniqueId().toString());
+							lstUUID.add(player.getUniqueId()); // add the player to the list
+						}
 					}
 				}
 			}
